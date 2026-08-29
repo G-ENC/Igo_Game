@@ -72,10 +72,9 @@ while running:
             right_click = pygame.mouse.get_pressed()[2]
             mouse_cell_number = mouse_pos[0]//go_board_arr[0][0].width_height, mouse_pos[1]//go_board_arr[0][0].width_height
 
-            if left_click:
-                putStoneToCoordinate(mouse_cell_number[0],mouse_cell_number[1],go_board_arr, player1_stone)
-            elif right_click:
-                putStoneToCoordinate(mouse_cell_number[0],mouse_cell_number[1],go_board_arr, player2_stone)
+            if go_board_arr[mouse_cell_number[1]][mouse_cell_number[0]].stone == None:
+                putStoneToCoordinate(mouse_cell_number[0],mouse_cell_number[1],go_board_arr, (player1_stone if left_click else player2_stone))
+           
             update = False
 
     if mouse_pos != pygame.mouse.get_pos():
