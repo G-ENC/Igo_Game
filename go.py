@@ -15,6 +15,7 @@ pygame.display.set_caption("WEIQI")
 clock = pygame.time.Clock()
 FPS = 60
 
+
 go_board_arr = generateBoardArray(9, SCREEN_WIDTH,SCREEN_HEIGHT)
 one_board_square = go_board_arr[0][0]
 running = True
@@ -42,6 +43,14 @@ def updateStones(board_array):
                 elif square.stone.player == 2:
                     pygame.draw.circle(screen, square.stone.color, (square.x_start+square.width_height/2, square.y_start+square.width_height/2),player2_stone.radius)
 
+def putStoneToCoordinate(x_pos, y_pos, board_arr, player_stone):
+    board_arr[y_pos][x_pos].stone = player_stone
+
+
+def resetBoard(board_array):
+    for row in board_array:
+        for square in row:
+            square.stone = None
 
 screen.fill((50,50,50))
 mouse_pos = (0,0)
@@ -52,23 +61,22 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
+        elif event.type == pygame.KEYDOWN:
+            if event.unicode == 'r':
+                resetBoard(go_board_arr)
+            update = False
+        
+
         elif event.type == pygame.MOUSEBUTTONDOWN:
             left_click = pygame.mouse.get_pressed()[0]
             right_click = pygame.mouse.get_pressed()[2]
             mouse_cell_number = mouse_pos[0]//go_board_arr[0][0].width_height, mouse_pos[1]//go_board_arr[0][0].width_height
-    
+
             if left_click:
-                go_board_arr[mouse_cell_number[1]][mouse_cell_number[0]].stone = player1_stone
-                print(f'left click: {mouse_cell_number}')
+                putStoneToCoordinate(mouse_cell_number[0],mouse_cell_number[1],go_board_arr, player1_stone)
             elif right_click:
-                go_board_arr[mouse_cell_number[1]][mouse_cell_number[0]].stone = player2_stone
-                print(f'right click: {mouse_cell_number}')
+                putStoneToCoordinate(mouse_cell_number[0],mouse_cell_number[1],go_board_arr, player2_stone)
             update = False
-
-
-
-
-    
 
     if mouse_pos != pygame.mouse.get_pos():
         mouse_pos = pygame.mouse.get_pos()
