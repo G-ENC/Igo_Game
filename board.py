@@ -1,11 +1,9 @@
 from board_square import BoardSquare
 
-def generateBoardArray(n: int,screenWidth,screenHeight):
+def generateBoardArray(n , screenWidth, screenHeight):
 
     go_board = []
     is_white = True
-
-
 
     cell_width_height = screenHeight//n
 

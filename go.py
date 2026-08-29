@@ -20,8 +20,8 @@ go_board_arr = generateBoardArray(9, SCREEN_WIDTH,SCREEN_HEIGHT)
 one_board_square = go_board_arr[0][0]
 running = True
 update = False
-player1_color = '#3bceac'
-player2_color = '#ee4266'
+player1_color = '#1A1A1A'
+player2_color = '#F5F5F5'
 player1_stone = Stone(one_board_square.width_height*3/8,player1_color,1)
 player2_stone = Stone(one_board_square.width_height*3/8,player2_color,2)
 
@@ -30,9 +30,19 @@ def generateBoard(board):
     for row in board:
         for square in row:
             if square.is_white == True:
-                pygame.draw.rect(screen, '#540d6e', (square.x_start,square.y_start,square.width_height, square.width_height))
+                pygame.draw.rect(screen, '#3E2723', (square.x_start,square.y_start,square.width_height, square.width_height))
             else:
-                pygame.draw.rect(screen, '#ffd23f', (square.x_start,square.y_start,square.width_height, square.width_height))
+                pygame.draw.rect(screen, '#D2B48C', (square.x_start,square.y_start,square.width_height, square.width_height))
+
+def generateOverlay(board):
+    index = 0
+    
+    for row in board:
+        pygame.draw.line(screen, '#3E2723', (0,row[index].y_start+one_board_square.width_height/2), (SCREEN_WIDTH,row[index].y_start+one_board_square.width_height/2), 5)
+        pygame.draw.line(screen, '#3E2723', (row[index].x_start+one_board_square.width_height/2,0), (row[index].x_start+one_board_square.width_height/2,SCREEN_HEIGHT), 5)
+        print(row[index].x_start,row[index].y_start)
+        index += 1
+
 
 def updateStones(board_array):
     for row in board_array:
@@ -52,7 +62,7 @@ def resetBoard(board_array):
         for square in row:
             square.stone = None
 
-screen.fill((50,50,50))
+screen.fill('#D2B48C')
 mouse_pos = (0,0)
 
 while running:
@@ -82,7 +92,8 @@ while running:
         update = False
     
     if not update:
-        generateBoard(go_board_arr)
+        # generateBoard(go_board_arr)
+        generateOverlay(go_board_arr)
         updateStones(go_board_arr)
         update = True
     
