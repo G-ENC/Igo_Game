@@ -3,8 +3,9 @@ from board import generateBoardArray
 import numpy as np
 
 
-def putStoneToCoordinate(x_pos, y_pos, board_arr, player_stone):
+def putStoneToCoordinate(x_pos, y_pos, board_arr, player_stone: Stone):
     board_arr[y_pos][x_pos].stone = player_stone
+    player_stone.cell_coordinate = (x_pos,y_pos)
 
 def getCellBoardArray (n, board):
     cell_board = []

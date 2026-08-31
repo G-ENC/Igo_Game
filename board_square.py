@@ -1,10 +1,12 @@
 class Stone:
     # x and y are the middle point of the stone
-    def __init__(self, radius, color, player, liberty=None):
+    def __init__(self, radius, color, player, liberty=None, cell_coordinate = None, neighbors = None):
         self.radius = radius
         self.color = color
         self.player = player
         self.liberty = liberty
+        self.cell_coordinate = cell_coordinate
+        self.neighbors = neighbors
 
 
 class BoardSquare:
