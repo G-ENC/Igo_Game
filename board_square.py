@@ -6,6 +6,7 @@ class Stone:
         self.player = player
         self.liberty = liberty
 
+
 class BoardSquare:
     #square x and y is anchhored at top left corner
     def __init__(self, x_start, y_start, width_height, is_white, Stone = None):
