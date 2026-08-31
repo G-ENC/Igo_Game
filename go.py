@@ -8,8 +8,8 @@ from utils import *
 
 pygame.init()
 
-SCREEN_WIDTH = 900;
-SCREEN_HEIGHT = 900;
+SCREEN_WIDTH = 600;
+SCREEN_HEIGHT = 600;
 CELL_NUMBER = 9
 DEBUG = True
 screen = pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT))
@@ -70,10 +70,14 @@ while running:
             mouse_cell_number = getCellCoordinate(mouse_pos[0],mouse_pos[1],one_board_square.width_height)
             if go_board_arr[mouse_cell_number[1]][mouse_cell_number[0]].stone == None:
                 p1_stone = Stone(one_board_square.width_height*3/8,player1_color,1)
-                putStoneToCoordinate(CELL_NUMBER, mouse_cell_number[0],mouse_cell_number[1],go_board_arr, (p1_stone if left_click else player2_stone))
+                p2_stone = Stone(one_board_square.width_height*3/8,player2_color,2)
+                putStoneToCoordinate(CELL_NUMBER, mouse_cell_number[0],mouse_cell_number[1],go_board_arr, (p1_stone if left_click else p2_stone))
                 # checkNeighbors(CELL_NUMBER, p1_stone, go_board_arr)
-                
-                print(p1_stone.neighbors)
+                # print(p1_stone.neighbors if left_click else p2_stone.neighbors)
+
+                for _ in getNeighborList(CELL_NUMBER, player1_stone, go_board_arr):
+                    print(f"{player1_stone.cell_coordinate} : {_}")
+
                 
             update = False
 

@@ -6,8 +6,11 @@ import numpy as np
 def putStoneToCoordinate(n, x_pos, y_pos, board_arr, player_stone: Stone):
     board_arr[y_pos][x_pos].stone = player_stone
     player_stone.cell_coordinate = (x_pos,y_pos)
-    player_stone.neighbors = checkNeighbors(n, player_stone, board_arr)
-
+    # player_stone.neighbors = checkNeighbors(n, player_stone, board_arr)
+    for y in range(n):
+        for x in range(n):
+            if(board_arr[y][x].stone != None):
+                board_arr[y][x].stone.neighbors = checkNeighbors(n, board_arr[y][x].stone, board_arr)
 
 def getCellBoardArray (n, board):
     cell_board = []
@@ -49,6 +52,10 @@ def checkNeighbors(n, player_stone:Stone, go_board):
                 neighbors.append((x,y))
     return neighbors
 
-
-    
-#     return available_spaces
+def getNeighborList(n, player_stone:Stone, board_arr):
+    all_neighbors = []
+    for y in range(n):
+        for x in range(n):
+            if board_arr[y][x].stone != None and player_stone.color == board_arr[y][x].stone.color:
+                all_neighbors.append(board_arr[y][x].stone.neighbors)
+    return all_neighbors

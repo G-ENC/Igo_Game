@@ -18,3 +18,4 @@ class BoardSquare:
         self.is_white = is_white
         self.stone = Stone
 
+
