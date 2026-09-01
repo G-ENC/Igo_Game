@@ -8,10 +8,10 @@ from utils import *
 
 pygame.init()
 
-SCREEN_WIDTH = 600;
-SCREEN_HEIGHT = 600;
+SCREEN_WIDTH = 900;
+SCREEN_HEIGHT = 900;
 CELL_NUMBER = 9
-DEBUG = True
+DEBUG = False
 screen = pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT))
 pygame.display.set_caption("WEIQI")
 
@@ -68,17 +68,18 @@ while running:
             left_click = pygame.mouse.get_pressed()[0]
             right_click = pygame.mouse.get_pressed()[2]
             mouse_cell_number = getCellCoordinate(mouse_pos[0],mouse_pos[1],one_board_square.width_height)
-            if go_board_arr[mouse_cell_number[1]][mouse_cell_number[0]].stone == None:
+            cell_x, cell_y = mouse_cell_number
+
+            if go_board_arr[cell_y][cell_x].stone == None:
                 p1_stone = Stone(one_board_square.width_height*3/8,player1_color,1)
                 p2_stone = Stone(one_board_square.width_height*3/8,player2_color,2)
-                putStoneToCoordinate(CELL_NUMBER, mouse_cell_number[0],mouse_cell_number[1],go_board_arr, (p1_stone if left_click else p2_stone))
+                putStoneToCoordinate(CELL_NUMBER, cell_x, cell_y, go_board_arr, (p1_stone if left_click else p2_stone))
                 # checkNeighbors(CELL_NUMBER, p1_stone, go_board_arr)
                 # print(p1_stone.neighbors if left_click else p2_stone.neighbors)
-
-                for _ in getNeighborList(CELL_NUMBER, player1_stone, go_board_arr):
-                    print(f"{player1_stone.cell_coordinate} : {_}")
-
+                # dfs(CELL_NUMBER, p1_stone, go_board_arr)
+                print(getLiberty(CELL_NUMBER, p1_stone, go_board_arr))
                 
+                print("\n\n\n\n")
             update = False
 
     if mouse_pos != pygame.mouse.get_pos():
@@ -94,13 +95,7 @@ while running:
     
     if DEBUG == True:
         cell_coo = getCellCoordinate(mouse_pos[0],mouse_pos[1],one_board_square.width_height)
-        # print(f"cell_coordinate: {cell_coo}")
-        # print(checkNeighbors(CELL_NUMBER,cell_coo[0],cell_coo[1],one_board_square))
-        # print(np.array(checkNeighbors(CELL_NUMBER)))
-        # print(np.array(getCellBoardArray(CELL_NUMBER, go_board_arr)))
-    # pygame.draw.rect(screen, (255,255,255), (20,20,400,400))
-
-    # pygame.draw.rect(screen, (255,255,255), (square.x_start,square.y_start,square.width_height, square.width_height))
+        print(f"cell_coordinate: {cell_coo}")
 
     pygame.display.flip()
 

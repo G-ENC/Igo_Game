@@ -2,7 +2,6 @@ from board_square import BoardSquare, Stone
 from board import generateBoardArray
 import numpy as np
 
-
 def putStoneToCoordinate(n, x_pos, y_pos, board_arr, player_stone: Stone):
     board_arr[y_pos][x_pos].stone = player_stone
     player_stone.cell_coordinate = (x_pos,y_pos)
@@ -37,25 +36,51 @@ def getCellCoordinate(x_pos, y_pos, square_width_height):
     return mouse_cell_number
 
 def checkNeighbors(n, player_stone:Stone, go_board):
-
     offset = [(1,0),(0,1),(-1,0),(0,-1)]
     current_coordinate = player_stone.cell_coordinate
     neighbors = []
 
     for o in offset:
         x,y = tuple(sum(x) for x in zip(current_coordinate, o))
-        
         if (x<0 or x>=n or y<0 or y>=n) == True:
             continue
         else:
-            if (go_board[y][x].stone != None) and ( player_stone.player == go_board[y][x].stone.player):
+            if (go_board[y][x].stone != None) and (player_stone.player == go_board[y][x].stone.player):
                 neighbors.append((x,y))
     return neighbors
 
-def getNeighborList(n, player_stone:Stone, board_arr):
-    all_neighbors = []
-    for y in range(n):
-        for x in range(n):
-            if board_arr[y][x].stone != None and player_stone.color == board_arr[y][x].stone.color:
-                all_neighbors.append(board_arr[y][x].stone.neighbors)
-    return all_neighbors
+
+def dfs(n, player_stone:Stone, go_board):
+    source = player_stone.cell_coordinate
+    seen = set()
+    seen.add(source)
+    stack = [source]
+
+    cluster = []
+    while stack:
+        node = stack.pop()
+        cluster.append(node)
+        for nei_node in checkNeighbors(n, go_board[node[1]][node[0]].stone, go_board):
+            if nei_node not in seen:
+                seen.add(nei_node)
+                stack.append(nei_node)
+
+    return cluster
+
+def getLiberty(n, player_stone:Stone, go_board):
+
+    offset = [(1,0),(0,1),(-1,0),(0,-1)]
+    current_coordinate = player_stone.cell_coordinate
+
+    liberty_coordinate = set()
+    cluster_list = dfs(n, player_stone, go_board)
+
+    for x,y in cluster_list:
+        for o in offset:
+            offset_x = x+o[0]
+            offset_y = y+o[1]
+            if go_board[offset_y][offset_x].stone == None and ((offset_x,offset_y) not in liberty_coordinate):
+                
+                liberty_coordinate.add((offset_x, offset_y))
+
+    return(len(liberty_coordinate))
