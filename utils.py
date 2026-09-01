@@ -79,8 +79,12 @@ def getLiberty(n, player_stone:Stone, go_board):
         for o in offset:
             offset_x = x+o[0]
             offset_y = y+o[1]
+            if (offset_x<0 or offset_x>=n or offset_y<0 or offset_y>=n) == True:
+                continue
             if go_board[offset_y][offset_x].stone == None and ((offset_x,offset_y) not in liberty_coordinate):
                 
                 liberty_coordinate.add((offset_x, offset_y))
 
     return(len(liberty_coordinate))
+
+
