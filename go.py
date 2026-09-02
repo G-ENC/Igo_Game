@@ -1,6 +1,7 @@
 import pygame
 import sys
 import numpy as np
+from numpy import *
 from board_square import BoardSquare
 from board import generateBoardArray
 from board_square import Stone, BoardSquare
@@ -11,7 +12,7 @@ pygame.init()
 SCREEN_WIDTH = 900;
 SCREEN_HEIGHT = 900;
 CELL_NUMBER = 9
-DEBUG = True
+DEBUG = False
 screen = pygame.display.set_mode((SCREEN_WIDTH,SCREEN_HEIGHT))
 pygame.display.set_caption("WEIQI")
 
@@ -26,6 +27,11 @@ player1_color = '#1A1A1A'
 player2_color = '#F5F5F5'
 player1_stone = Stone(one_board_square.width_height*3/8,player1_color,1)
 player2_stone = Stone(one_board_square.width_height*3/8,player2_color,2)
+
+def turnIndicatorOverlay(turn, first_color, second_color, square:BoardSquare, screen_width):
+    pygame.draw.circle(screen, first_color if turn%2==0 else second_color, ( screen_width, 0), square.width_height*3/9)
+
+
 
 def generateBoard(board):
     for row in board:
@@ -45,16 +51,17 @@ def generateOverlay(board):
 def updateStones(board_array):
     for row in board_array:
         for square in row:
+            
             if square.stone != None:
-                if square.stone.player == 1:
+                if square.stone.liberty == 0:
+                    square.stone = None
+                elif square.stone.player == 1:
                     pygame.draw.circle(screen, square.stone.color, (square.x_start+square.width_height/2, square.y_start+square.width_height/2),player1_stone.radius)
                 elif square.stone.player == 2:
                     pygame.draw.circle(screen, square.stone.color, (square.x_start+square.width_height/2, square.y_start+square.width_height/2),player2_stone.radius)
 
 def updateLiberty(n, board_array):
-
     seen = set()
-
     for y in range(n):
         for x in range(n):
             stone = board_array[y][x].stone
@@ -65,13 +72,27 @@ def updateLiberty(n, board_array):
                     seen.add(stone_coord)
                     current_stone.liberty = getLiberty(n, current_stone, board_array)
 
+def updateOponentLiberty(n, player_stone:Stone, board_array):
+    seen = set()
+    for y in range(n):
+        for x in range(n):
+            stone = board_array[y][x].stone
+
+            if stone and (stone.cell_coordinate not in seen) and (stone.color != player_stone.color):
+                for stone_coord in dfs(n, stone, board_array):
+                    current_stone = board_array[stone_coord[1]][stone_coord[0]].stone
+                    seen.add(stone_coord)
+                    current_stone.liberty = getLiberty(n, current_stone, board_array)
+
 
 
 mouse_pos = (0,0)
-
 round_number = 0
+boardArrayStack = []
 
 while running:
+
+    
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -85,21 +106,39 @@ while running:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if(pygame.mouse.get_pressed()[0]):
                 stone = Stone(one_board_square.width_height*3/8,player1_color,1) if round_number%2 == 0 else Stone(one_board_square.width_height*3/8,player2_color,2) 
-
-                mouse_cell_number = getCellCoordinate(mouse_pos[0],mouse_pos[1],one_board_square.width_height)
-                cell_x, cell_y = mouse_cell_number
-
+                cell_x, cell_y = getCellCoordinate(mouse_pos[0],mouse_pos[1],one_board_square.width_height)
+                
                 if go_board_arr[cell_y][cell_x].stone == None:
 
+                    #log the boiard state to check if the move is valid
+
+
+                    
                     putStoneToCoordinate(CELL_NUMBER, cell_x, cell_y, go_board_arr, stone)
 
 
-                    for stoneCoordinate in dfs(CELL_NUMBER, stone, go_board_arr):
-                        go_board_arr[stoneCoordinate[1]][stoneCoordinate[0]].stone.liberty = getLiberty(CELL_NUMBER, stone, go_board_arr)
 
-                    
+                    boardArrayStack.append(getCellBoardArray(CELL_NUMBER, go_board_arr))
 
-                round_number += 1        
+                    if(len(boardArrayStack)>3):
+                        boardArrayStack.pop(0)
+                    print("\n\n\n\n\n\n\n\n")
+                    print(np.array(boardArrayStack))
+
+                    if(len(boardArrayStack) == 3 and (boardArrayStack[2] == boardArrayStack[1])):
+                        boardArrayStack.pop()
+                        round_number -= 1
+                    elif(len(boardArrayStack) == 3 and boardArrayStack[2] == boardArrayStack[0]):
+                         go_board_arr[cell_y][cell_x].stone = None
+                         
+
+                    updateOponentLiberty(CELL_NUMBER, stone, go_board_arr)
+
+
+
+
+
+                round_number += 1     
             update = False
 
     if mouse_pos != pygame.mouse.get_pos():
@@ -111,8 +150,8 @@ while running:
         screen.fill('#D2B48C')
         generateOverlay(go_board_arr)
         updateStones(go_board_arr)
+        turnIndicatorOverlay(round_number, player1_color, player2_color, one_board_square, SCREEN_WIDTH)
         updateLiberty(CELL_NUMBER, go_board_arr)
-        
         update = True
     
     if DEBUG == True:
