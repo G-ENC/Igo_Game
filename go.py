@@ -6,6 +6,7 @@ from board_square import BoardSquare
 from board import generateBoardArray
 from board_square import Stone, BoardSquare
 from utils import *
+import copy
 
 pygame.init()
 
@@ -72,22 +73,31 @@ def updateLiberty(n, board_array):
                     seen.add(stone_coord)
                     current_stone.liberty = getLiberty(n, current_stone, board_array)
 
-def updateOponentLiberty(n, player_stone:Stone, board_array):
+def updateAllyLiberty(n, player_stone:Stone, board_array):
     seen = set()
     for y in range(n):
         for x in range(n):
             stone = board_array[y][x].stone
-
-            if stone and (stone.cell_coordinate not in seen) and (stone.color != player_stone.color):
+            if stone and (stone.cell_coordinate not in seen) and (stone.color == player_stone.color):
                 for stone_coord in dfs(n, stone, board_array):
                     current_stone = board_array[stone_coord[1]][stone_coord[0]].stone
                     seen.add(stone_coord)
                     current_stone.liberty = getLiberty(n, current_stone, board_array)
 
-
-
+def updateOponentLiberty(n, player_stone:Stone, board_array):
+    seen = set()
+    for y in range(n):
+        for x in range(n):
+            stone = board_array[y][x].stone
+            if stone and (stone.cell_coordinate not in seen) and (stone.color != player_stone.color):
+                for stone_coord in dfs(n, stone, board_array):
+                    current_stone = board_array[stone_coord[1]][stone_coord[0]].stone
+                    seen.add(stone_coord)
+                    current_stone.liberty = getLiberty(n, current_stone, board_array)
+    
 mouse_pos = (0,0)
 round_number = 0
+boardCellStack = []
 boardArrayStack = []
 
 while running:
@@ -105,41 +115,56 @@ while running:
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if(pygame.mouse.get_pressed()[0]):
-                stone = Stone(one_board_square.width_height*3/8,player1_color,1) if round_number%2 == 0 else Stone(one_board_square.width_height*3/8,player2_color,2) 
+                stone = Stone(one_board_square.width_height*3/8,player1_color,1) if round_number%2 == 0 else Stone(one_board_square.width_height*3/8,player2_color,2)
                 cell_x, cell_y = getCellCoordinate(mouse_pos[0],mouse_pos[1],one_board_square.width_height)
                 
                 if go_board_arr[cell_y][cell_x].stone == None:
 
-                    #log the boiard state to check if the move is valid
-
-
                     
-                    putStoneToCoordinate(CELL_NUMBER, cell_x, cell_y, go_board_arr, stone)
+                    future_board = copy.deepcopy(go_board_arr)
+                    putStoneToCoordinate(CELL_NUMBER, cell_x, cell_y, future_board, stone)
+                    updateOponentLiberty(CELL_NUMBER, stone, future_board)
+                    updateStones(future_board)
 
+                    boardCellStack.append(getCellBoardArray(CELL_NUMBER, future_board))
 
+                    boardArrayStack.append(copy.deepcopy(go_board_arr))
+                    len(boardArrayStack)>3 and boardArrayStack.pop(0)
 
-                    boardArrayStack.append(getCellBoardArray(CELL_NUMBER, go_board_arr))
+                    # for _ in range(len(boardArrayStack)):
+                    #     print(np.array(getCellBoardArray(CELL_NUMBER, boardArrayStack[_])))
+                    #     print("\n")
 
-                    if(len(boardArrayStack)>3):
-                        boardArrayStack.pop(0)
-                    print("\n\n\n\n\n\n\n\n")
-                    print(np.array(boardArrayStack))
+                    len(boardCellStack)>3 and boardCellStack.pop(0)
+                    # print("\n\n\n\n\n\n\n\n")
+                    # print(np.array(boardCellStack))
+                    
+                    if(len(boardCellStack) == 3 and (boardCellStack[2] == boardCellStack[0])):
+                        boardCellStack.pop()
+                        go_board_arr = boardArrayStack[-1]
+                        print("ayran")
+                    else:
 
-                    if(len(boardArrayStack) == 3 and (boardArrayStack[2] == boardArrayStack[1])):
-                        boardArrayStack.pop()
-                        round_number -= 1
-                    elif(len(boardArrayStack) == 3 and boardArrayStack[2] == boardArrayStack[0]):
-                         go_board_arr[cell_y][cell_x].stone = None
-                         
+                        updateAllyLiberty(CELL_NUMBER, stone, future_board)
+                        updateStones(future_board)
+                        boardCellStack.pop()
+                        boardCellStack.append(getCellBoardArray(CELL_NUMBER,future_board))
+                        print("\n\n\n\n\n\n\n\n")
+                        print(np.array(boardCellStack))
 
-                    updateOponentLiberty(CELL_NUMBER, stone, go_board_arr)
+                        if(len(boardCellStack) == 3 and (boardCellStack[2] == boardCellStack[1])):
+                            boardCellStack.pop()
+                            go_board_arr = boardArrayStack[-1]
+                            print("Iran")
+                        else:
+                            print("This ran")
+                            putStoneToCoordinate(CELL_NUMBER, cell_x, cell_y, go_board_arr, stone)
+                            updateOponentLiberty(CELL_NUMBER, stone, go_board_arr)
+                            round_number += 1
+                            update = False
 
+                    #dont hold more than 2 history
 
-
-
-
-                round_number += 1     
-            update = False
 
     if mouse_pos != pygame.mouse.get_pos():
         mouse_pos = pygame.mouse.get_pos()
