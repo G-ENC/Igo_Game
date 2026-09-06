@@ -67,13 +67,14 @@ def placeableConstraint(n, x, y, board_array):
                     return True     
     return False
 
-# def updateConstraintOverlay(n, turn, constraint):
+def updateConstraintOverlay(n, turn, board_arr):
     
-#     constraint_cells = findPlayerConstraints(CELL_NUMBER, player1_stone if turn%2==0 else player2_stone, go_board_arr)
-#     for y in range(n):
-#         for x in range(n):
-#             if constraint_cells:
-#                 pygame.draw.circle(screen, (240, 20, 20), (square.x_start+square.width_height/2, square.y_start+square.width_height/2), one_board_square.width_height*1/8)        
+    constraint_cells = findPlayerConstraints(n, player1_stone if turn%2==0 else player2_stone, board_arr)
+    for row in board_arr:
+        for square in row:
+            if square.coordinate in constraint_cells :
+                pygame.draw.circle(screen, (240, 20, 20), (square.x_start+square.width_height/2, square.y_start+square.width_height/2), one_board_square.width_height*1/8)        
+
 
 def findPlayerConstraints(n, player_stone, board_array):
     constraint_array = []
@@ -83,20 +84,15 @@ def findPlayerConstraints(n, player_stone, board_array):
             square = board_array[y][x]
             if square.stone == None:
                 putStoneToCoordinate(n, x, y, board_array, player_stone)
-                if getLiberty(n, player_stone, board_array) == 0:
+                if (getLiberty(n, player_stone, board_array) == 0) and not placeableConstraint(n, player_stone.cell_coordinate[0], player_stone.cell_coordinate[1], board_array):
                     board_array[y][x].constraint = True
-                    pygame.draw.circle(screen, (250, 10, 10), (square.x_start+square.width_height/2, square.y_start+square.width_height/2), one_board_square.width_height*2/8)
                     constraint_array.append((player_stone.cell_coordinate[0],player_stone.cell_coordinate[1]))
-                if (placeableConstraint(n, player_stone.cell_coordinate[0], player_stone.cell_coordinate[1], board_array)):
-                    pygame.draw.circle(screen, (10, 240, 20), (square.x_start+square.width_height/2, square.y_start+square.width_height/2), one_board_square.width_height*1/8)
-                    constraint_array.pop()
                 board_array[y][x].stone = None
     return constraint_array
 
 def updateStones(board_array):
     for row in board_array:
         for square in row:
-            
             if square.stone != None:
                 if square.stone.liberty == 0:
                     square.stone = None
