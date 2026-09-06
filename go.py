@@ -95,11 +95,11 @@ def findPlayerConstraints(n, player_stone, board_array):
                 board_array[y][x].stone = None
     return constraint_array
 
-def findPlayerConstraints(n, player_stone, board_histroy, board_array):
+def findPlayerKo(n, player_stone, board_histroy, board_array):
 
-
+    ko_cells = []
     future_board = copy.deepcopy(go_board_arr)
-                    #make the move on an alternative board
+    #make the move on an alternative board
     putStoneToCoordinate(CELL_NUMBER, cell_x, cell_y, future_board, stone)
     updateOponentLiberty(CELL_NUMBER, stone, future_board)
     updateStones(future_board)
@@ -117,23 +117,28 @@ def findPlayerConstraints(n, player_stone, board_histroy, board_array):
         go_board_arr = boardArrayStack[-1]
         go_board_arr[cell_y][cell_x].ko = True
         print("Not allowed by Ko")
-    else:
+    
 
+    
+
+    #place a stone if the board is the same as it was before after updatingOpponentLIberties then mark the spot as ko; a ko cell cannot be palced 
     for y in range(n):
         for x in range(n):
             board_array[y][x].ko = False
             square = board_array[y][x]
             if square.stone == None:
                 putStoneToCoordinate(n, x, y, board_array, player_stone)
-                if (getLiberty(n, player_stone, board_array) == 0):
-                    board_array[y][x].constraint = True
-                    constraint_array.append((player_stone.cell_coordinate[0],player_stone.cell_coordinate[1]))
-                if findOneLibertyInNeighbor(n, player_stone.cell_coordinate[0], player_stone.cell_coordinate[1], board_array):
-                    board_array[y][x].constraint = False
-                    constraint_array.pop()
+                updateOponentLiberty(n, player_stone, board_array)
+                updateStones(board_array)
+
+                if len(board_histroy) and (getCellBoardArray(board_histroy[0]) == getCellBoardArray(board_array)):
+                    square.ko = True
+                    board_array[y][x].ko = True
+                    ko_cells.append((x,y))
+                    
 
                 board_array[y][x].stone = None
-    return constraint_array
+    return 
 
 def updateStones(board_array):
     for row in board_array:
