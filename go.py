@@ -92,6 +92,45 @@ def findPlayerConstraints(n, player_stone, board_array):
                 if findOneLibertyInNeighbor(n, player_stone.cell_coordinate[0], player_stone.cell_coordinate[1], board_array):
                     board_array[y][x].constraint = False
                     constraint_array.pop()
+                board_array[y][x].stone = None
+    return constraint_array
+
+def findPlayerConstraints(n, player_stone, board_histroy, board_array):
+
+
+    future_board = copy.deepcopy(go_board_arr)
+                    #make the move on an alternative board
+    putStoneToCoordinate(CELL_NUMBER, cell_x, cell_y, future_board, stone)
+    updateOponentLiberty(CELL_NUMBER, stone, future_board)
+    updateStones(future_board)
+    boardCellStack.append(getCellBoardArray(CELL_NUMBER, future_board))
+    len(boardCellStack)>3 and boardCellStack.pop(0)
+
+    #hold the board to roll back change
+    boardArrayStack.append(copy.deepcopy(go_board_arr))
+    len(boardArrayStack)>3 and boardArrayStack.pop(0)
+
+    
+    if(len(boardCellStack) == 3 and (boardCellStack[2] == boardCellStack[0])):
+        
+        boardCellStack.pop()
+        go_board_arr = boardArrayStack[-1]
+        go_board_arr[cell_y][cell_x].ko = True
+        print("Not allowed by Ko")
+    else:
+
+    for y in range(n):
+        for x in range(n):
+            board_array[y][x].ko = False
+            square = board_array[y][x]
+            if square.stone == None:
+                putStoneToCoordinate(n, x, y, board_array, player_stone)
+                if (getLiberty(n, player_stone, board_array) == 0):
+                    board_array[y][x].constraint = True
+                    constraint_array.append((player_stone.cell_coordinate[0],player_stone.cell_coordinate[1]))
+                if findOneLibertyInNeighbor(n, player_stone.cell_coordinate[0], player_stone.cell_coordinate[1], board_array):
+                    board_array[y][x].constraint = False
+                    constraint_array.pop()
 
                 board_array[y][x].stone = None
     return constraint_array
@@ -182,10 +221,10 @@ while running:
 
                     
                     if(len(boardCellStack) == 3 and (boardCellStack[2] == boardCellStack[0])):
-                        go_board_arr[cell_y][cell_x].ko = True
                         
                         boardCellStack.pop()
                         go_board_arr = boardArrayStack[-1]
+                        go_board_arr[cell_y][cell_x].ko = True
                         print("Not allowed by Ko")
                     else:
 
