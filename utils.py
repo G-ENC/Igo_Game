@@ -49,7 +49,6 @@ def checkNeighbors(n, player_stone:Stone, go_board):
                 neighbors.append((x,y))
     return neighbors
 
-
 def dfs(n, player_stone:Stone, go_board):
     source = player_stone.cell_coordinate
     seen = set()
@@ -70,7 +69,6 @@ def dfs(n, player_stone:Stone, go_board):
 def getLiberty(n, player_stone:Stone, go_board):
 
     offset = [(1,0),(0,1),(-1,0),(0,-1)]
-    current_coordinate = player_stone.cell_coordinate
 
     liberty_coordinate = set()
     cluster_list = dfs(n, player_stone, go_board)

@@ -11,11 +11,13 @@ class Stone:
 
 class BoardSquare:
     #square x and y is anchhored at top left corner
-    def __init__(self, x_start, y_start, width_height:int, is_white:bool, Stone:Stone = None):
+    def __init__(self, x_start, y_start, width_height:int, is_white:bool, Stone:Stone = None, constraint:bool = False, ko:bool= False):
         self.x_start = x_start
         self.y_start = y_start
         self.width_height = width_height
         self.is_white = is_white
         self.stone = Stone
+        self.constraint = constraint
+        self.ko = ko
 
 
