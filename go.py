@@ -51,12 +51,23 @@ def generateOverlay(board):
         pygame.draw.line(screen, '#3E2723', (row[index].x_start+one_board_square.width_height/2,0), (row[index].x_start+one_board_square.width_height/2,SCREEN_HEIGHT), 5)
         index += 1
 
-def placeableConstraint(n, x, y, board_array):
+def updateConstraintOverlay(board_arr):
+    for row in board_arr:
+        for square in row:
+            if square.constraint == True:
+                pygame.draw.circle(screen, (240, 20, 20), (square.x_start+square.width_height/2, square.y_start+square.width_height/2), one_board_square.width_height*1/5)
 
+def updateKoOverlay(board_arr):
+    for row in board_arr:
+        for square in row:
+            if square.ko == True:
+                pygame.draw.circle(screen, (20, 20, 240), (square.x_start+square.width_height/2, square.y_start+square.width_height/2), one_board_square.width_height*1/5)
+
+
+def findOneLibertyInNeighbor(n, x, y, board_array):
     if(board_array[y][x].constraint == True):
         offset = [(1,0),(0,1),(-1,0),(0,-1)]
         current_coordinate = (x,y)
-        neighbors = []
 
         for o in offset:
             x,y = tuple(sum(x) for x in zip(current_coordinate, o))
@@ -67,15 +78,6 @@ def placeableConstraint(n, x, y, board_array):
                     return True     
     return False
 
-def updateConstraintOverlay(n, turn, board_arr):
-    
-    constraint_cells = findPlayerConstraints(n, player1_stone if turn%2==0 else player2_stone, board_arr)
-    for row in board_arr:
-        for square in row:
-            if square.coordinate in constraint_cells :
-                pygame.draw.circle(screen, (240, 20, 20), (square.x_start+square.width_height/2, square.y_start+square.width_height/2), one_board_square.width_height*1/8)        
-
-
 def findPlayerConstraints(n, player_stone, board_array):
     constraint_array = []
     for y in range(n):
@@ -84,9 +86,13 @@ def findPlayerConstraints(n, player_stone, board_array):
             square = board_array[y][x]
             if square.stone == None:
                 putStoneToCoordinate(n, x, y, board_array, player_stone)
-                if (getLiberty(n, player_stone, board_array) == 0) and not placeableConstraint(n, player_stone.cell_coordinate[0], player_stone.cell_coordinate[1], board_array):
+                if (getLiberty(n, player_stone, board_array) == 0):
                     board_array[y][x].constraint = True
                     constraint_array.append((player_stone.cell_coordinate[0],player_stone.cell_coordinate[1]))
+                if findOneLibertyInNeighbor(n, player_stone.cell_coordinate[0], player_stone.cell_coordinate[1], board_array):
+                    board_array[y][x].constraint = False
+                    constraint_array.pop()
+
                 board_array[y][x].stone = None
     return constraint_array
 
@@ -141,6 +147,8 @@ boardArrayStack = []
 
 while running:
 
+    constraint_cells = findPlayerConstraints(CELL_NUMBER, player1_stone if round_number%2==0 else player2_stone, go_board_arr)
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -151,11 +159,11 @@ while running:
             update = False
 
         elif event.type == pygame.MOUSEBUTTONDOWN:
+
             if(pygame.mouse.get_pressed()[0]):
                 stone = Stone(one_board_square.width_height*3/8,player1_color,1) if round_number%2 == 0 else Stone(one_board_square.width_height*3/8,player2_color,2)
                 cell_x, cell_y = getCellCoordinate(mouse_pos[0],mouse_pos[1],one_board_square.width_height)
                 
-                constraint_cells = findPlayerConstraints(CELL_NUMBER, player1_stone if round_number%2==0 else player2_stone, go_board_arr)
 
                 if go_board_arr[cell_y][cell_x].stone == None:
 
@@ -174,6 +182,8 @@ while running:
 
                     
                     if(len(boardCellStack) == 3 and (boardCellStack[2] == boardCellStack[0])):
+                        go_board_arr[cell_y][cell_x].ko = True
+                        
                         boardCellStack.pop()
                         go_board_arr = boardArrayStack[-1]
                         print("Not allowed by Ko")
@@ -189,6 +199,8 @@ while running:
                             updateOponentLiberty(CELL_NUMBER, stone, go_board_arr)
                             round_number += 1
                             update = False
+            elif(pygame.mouse.get_pressed()[1]):
+                DEBUG = True
 
     if mouse_pos != pygame.mouse.get_pos():
         mouse_pos = pygame.mouse.get_pos()
@@ -201,17 +213,20 @@ while running:
         updateStones(go_board_arr)
         turnIndicatorOverlay(round_number, player1_color, player2_color, one_board_square, SCREEN_WIDTH)
         updateLiberty(CELL_NUMBER, go_board_arr)
+        updateConstraintOverlay(go_board_arr)
+        updateKoOverlay(go_board_arr)
         update = True
     
     if DEBUG == True:
+        
         cell_coo = getCellCoordinate(mouse_pos[0],mouse_pos[1],one_board_square.width_height)
         stone_at_cell = go_board_arr[cell_coo[1]][cell_coo[0]].stone
         # print(f"cell_coordinate: {cell_coo}")
         if stone_at_cell:
             print(f"liberty: {stone_at_cell.liberty}")
-        if go_board_arr[cell_coo[1]][cell_coo[0]].constraint:
-
-            print("constraint!")
+        print(f"constraint:{go_board_arr[cell_coo[1]][cell_coo[0]].constraint}")
+        print(f"ko: {go_board_arr[cell_coo[1]][cell_coo[0]].ko}")
+        DEBUG = False
 
     pygame.display.flip()
 
