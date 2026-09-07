@@ -7,6 +7,9 @@ from board import generateBoardArray
 from board_square import Stone, BoardSquare
 from utils import *
 import copy
+import random
+import math
+import time
 
 pygame.init()
 
@@ -20,7 +23,7 @@ pygame.display.set_caption("WEIQI")
 font = pygame.font.Font(None, 36)
 
 clock = pygame.time.Clock()
-FPS = 60
+FPS = 120
 
 go_board_arr = generateBoardArray(CELL_NUMBER, SCREEN_WIDTH,SCREEN_HEIGHT)
 one_board_square = go_board_arr[0][0]
@@ -129,6 +132,64 @@ def updateStoneOverlay(board_array):
                 elif square.stone.player == 2:
                     pygame.draw.circle(screen, square.stone.color, (square.x_start+square.width_height/2, square.y_start+square.width_height/2),player2_stone.radius)
 
+def placeStoneAtRandom(n, turn, board_history, board_array): 
+    stone = Stone(one_board_square.width_height*3/8,player1_color,1) if turn%2 == 0 else Stone(one_board_square.width_height*3/8,player2_color,2)
+
+    constraint_cells = findPlayerConstraints(CELL_NUMBER, player1_stone if round_number%2==0 else player2_stone, go_board_arr)
+    ko_cells = findPlayerKo(CELL_NUMBER, player1_stone if round_number%2==0 else player2_stone, board_history, go_board_arr)
+
+    valid_moves = []
+
+    for y in range(n):
+        for x in range(n):
+            if((x,y) not in constraint_cells or (x,y) not in ko_cells)and board_array[y][x].stone == None:
+                valid_moves.append((x,y))
+
+    random_coord = random.choice(valid_moves)
+    cell_y = random_coord[1]
+    cell_x = random_coord[0]
+
+    # cell_y = math.floor(random.random()*n) 
+    # cell_x = math.floor(random.random()*n)
+
+    # coords = (cell_x, cell_y)
+
+
+    # while((board_array[cell_y][cell_x].stone != None) and ((coords in constraint_cells) or (coords in ko_cells))):
+    #     cell_y = math.floor(random.random()*n) 
+    #     cell_x = math.floor(random.random()*n)
+    #     for yindex in range(5):
+    #         for xindex in range(5):
+    #             cell_y +=  yindex
+    #             cell_x +=  xindex
+    #     coords = (cell_x, cell_y)
+    
+
+    # for board in board_history:
+    #     print(np.array(getCellBoardArray(CELL_NUMBER,board)))
+    if(board_array[cell_y][cell_x].stone == None):
+        ko_cells = findPlayerKo(CELL_NUMBER, player1_stone if round_number%2==0 else player2_stone, board_history,go_board_arr)
+        
+        if (cell_x,cell_y) in ko_cells:
+            print("Not allowed by Ko")
+        else:
+            if((cell_x,cell_y) in constraint_cells):
+                # boardCellStack.pop()
+                print("Not allowed by suicide")
+            else:
+                # print("Valid move")
+                putStoneToCoordinate(CELL_NUMBER, cell_x, cell_y, board_array, stone)
+                updateOponentLiberty(CELL_NUMBER, stone, board_array)
+                removeZeroLibertyStones(board_array)
+                updateAllyLiberty(CELL_NUMBER, stone, board_array)
+                
+                board_history.append(copy.deepcopy(board_array))
+                len(board_history)>3 and board_history.pop(0)
+
+    
+                
+
+
 def removeZeroLibertyStones(board_array):
     for row in board_array:
         for square in row:
@@ -176,6 +237,11 @@ boardArrayStack = []
 
 while running:
 
+    # time.sleep(0.0001)
+    placeStoneAtRandom(CELL_NUMBER, round_number, boardArrayStack, go_board_arr)
+    round_number += 1
+    update = False
+
     constraint_cells = findPlayerConstraints(CELL_NUMBER, player1_stone if round_number%2==0 else player2_stone, go_board_arr)
     ko_cells = findPlayerKo(CELL_NUMBER, player1_stone if round_number%2==0 else player2_stone, boardArrayStack,go_board_arr)
 
@@ -189,39 +255,25 @@ while running:
                 resetBoard(go_board_arr)
             update = False
 
+            if event.unicode == 'a':
+                placeStoneAtRandom(CELL_NUMBER, round_number, boardArrayStack, go_board_arr)
+            round_number += 1
+            update = False
+
         elif event.type == pygame.MOUSEBUTTONDOWN:
 
             if(pygame.mouse.get_pressed()[0]):
                 stone = Stone(one_board_square.width_height*3/8,player1_color,1) if round_number%2 == 0 else Stone(one_board_square.width_height*3/8,player2_color,2)
                 cell_x, cell_y = getCellCoordinate(mouse_pos[0],mouse_pos[1],one_board_square.width_height)
-                
-                
-                
+
 
                 if go_board_arr[cell_y][cell_x].stone == None:
 
-                    for board in boardArrayStack:
-                        print(np.array(getCellBoardArray(CELL_NUMBER,board)))
+                    # for board in boardArrayStack:
+                    #     print(np.array(getCellBoardArray(CELL_NUMBER,board)))
 
                     ko_cells = findPlayerKo(CELL_NUMBER, player1_stone if round_number%2==0 else player2_stone, boardArrayStack,go_board_arr)
-                    # #hold history
-                    # future_board = copy.deepcopy(go_board_arr)
-                    # #make the move on an alternative board
-                    # putStoneToCoordinate(CELL_NUMBER, cell_x, cell_y, future_board, stone)
-                    # updateOponentLiberty(CELL_NUMBER, stone, future_board)
-                    # updateStones(future_board)
-
-                    # boardCellStack.append(getCellBoardArray(CELL_NUMBER, future_board))
-                    # len(boardCellStack)>3 and boardCellStack.pop(0)
-
-                    #hold the board to roll back change
-
                     
-                    # if(len(boardCellStack) == 3 and (boardCellStack[2] == boardCellStack[0])):
-                    #     boardCellStack.pop()
-                    #     go_board_arr = boardArrayStack[-1]
-                    #     go_board_arr[cell_y][cell_x].ko = True
-                    #     print("Not allowed by Ko")
                     if (cell_x,cell_y) in ko_cells:
                         print("Not allowed by Ko")
                     else:
@@ -230,7 +282,7 @@ while running:
                             print("Not allowed by suicide")
 
                         else:
-                            print("Valid move")
+                            # print("Valid move")
                             putStoneToCoordinate(CELL_NUMBER, cell_x, cell_y, go_board_arr, stone)
                             updateOponentLiberty(CELL_NUMBER, stone, go_board_arr)
                             removeZeroLibertyStones(go_board_arr)
@@ -238,8 +290,6 @@ while running:
                             
                             boardArrayStack.append(copy.deepcopy(go_board_arr))
                             len(boardArrayStack)>3 and boardArrayStack.pop(0)
-                            
-
 
                             round_number += 1
                             update = False
