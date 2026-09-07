@@ -142,7 +142,7 @@ def placeStoneAtRandom(n, turn, board_history, board_array):
 
     for y in range(n):
         for x in range(n):
-            if((x,y) not in constraint_cells or (x,y) not in ko_cells)and board_array[y][x].stone == None:
+            if((x,y) not in constraint_cells or (x,y) not in ko_cells)and board_array[y][cell_x].stone == None:
                 valid_moves.append((x,y))
 
     random_coord = random.choice(valid_moves)
