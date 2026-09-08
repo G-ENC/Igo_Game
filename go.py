@@ -33,6 +33,8 @@ player1_color = '#1A1A1A'
 player2_color = '#F5F5F5'
 player1_stone = Stone(one_board_square.width_height*3/8,player1_color,1)
 player2_stone = Stone(one_board_square.width_height*3/8,player2_color,2)
+p1_pass = False
+p2_pass = False
 
 def turnIndicatorOverlay(turn, first_color, second_color, square:BoardSquare, screen_width):
     pygame.draw.circle(screen, first_color if turn%2==0 else second_color, ( screen_width, 0), square.width_height*3/9)
@@ -65,7 +67,6 @@ def updateKoOverlay(board_arr):
         for square in row:
             if square.ko == True:
                 pygame.draw.circle(screen, (20, 20, 240), (square.x_start+square.width_height/2, square.y_start+square.width_height/2), one_board_square.width_height*1/5)
-
 
 def findOneLibertyInNeighbor(n, x, y, board_array):
     one_liberty_stone = []
@@ -116,14 +117,10 @@ def findPlayerKo(n, player_stone, board_histroy, board_array):
                 putStoneToCoordinate(n, x, y, future_board, player_stone)
                 updateOponentLiberty(n, player_stone, future_board)
                 removeZeroLibertyStones(future_board)
-
                 # print(np.array(getCellBoardArray(CELL_NUMBER,future_board)))
-
-                
                 if (len(board_histroy)==3) and (getCellBoardArray(n, board_histroy[1]) == getCellBoardArray(n, future_board)):
                     square.ko = True
                     ko_cells.append((x,y))
-                    
                 future_board[y][x].stone = None
     return ko_cells
 
@@ -141,59 +138,54 @@ def updateStoneOverlay(board_array):
 def placeStoneAtRandom(n, turn, board_history, board_array): 
     stone = Stone(one_board_square.width_height*3/8,player1_color,1) if turn%2 == 0 else Stone(one_board_square.width_height*3/8,player2_color,2)
 
-    constraint_cells = findPlayerConstraints(CELL_NUMBER, player1_stone if round_number%2==0 else player2_stone, go_board_arr)
-    ko_cells = findPlayerKo(CELL_NUMBER, player1_stone if round_number%2==0 else player2_stone, board_history, go_board_arr)
+    constraint_cells_p2 = findPlayerConstraints(CELL_NUMBER, player1_stone, go_board_arr)
+    constraint_cells_p1= findPlayerConstraints(CELL_NUMBER, player2_stone, go_board_arr)
+    constraint_cells = findPlayerConstraints(CELL_NUMBER, player1_stone if turn%2==0 else player2_stone, go_board_arr)
+    ko_cells = findPlayerKo(CELL_NUMBER, player1_stone if turn%2==0 else player2_stone, board_history, go_board_arr)
 
     valid_moves = []
 
     for y in range(n):
         for x in range(n):
-            if((x,y) not in constraint_cells or (x,y) not in ko_cells)and board_array[y][x].stone == None:
+            # print(f"cons_p1: {((x,y) not in constraint_cells_p1)}")
+            # print(f"cons_p1: {((x,y) not in constraint_cells_p2)}")
+            # print(f"ko_cell: {((x,y) not in ko_cells)}")
+            # print(f"stone: {board_array[y][x] != None}")
+            if(((x,y) not in constraint_cells_p2) and ((x,y) not in constraint_cells_p1) and ((x,y) not in ko_cells)) and board_array[y][x].stone == None:
+                
                 valid_moves.append((x,y))
 
-    random_coord = random.choice(valid_moves)
-    cell_y = random_coord[1]
-    cell_x = random_coord[0]
+    print(f"~~~{np.array(valid_moves)}")
+    print(len(valid_moves))
 
-    # cell_y = math.floor(random.random()*n) 
-    # cell_x = math.floor(random.random()*n)
-
-    # coords = (cell_x, cell_y)
-
-
-    # while((board_array[cell_y][cell_x].stone != None) and ((coords in constraint_cells) or (coords in ko_cells))):
-    #     cell_y = math.floor(random.random()*n) 
-    #     cell_x = math.floor(random.random()*n)
-    #     for yindex in range(5):
-    #         for xindex in range(5):
-    #             cell_y +=  yindex
-    #             cell_x +=  xindex
-    #     coords = (cell_x, cell_y)
-    
-
-    # for board in board_history:
-    #     print(np.array(getCellBoardArray(CELL_NUMBER,board)))
-    if(board_array[cell_y][cell_x].stone == None):
-        ko_cells = findPlayerKo(CELL_NUMBER, player1_stone if round_number%2==0 else player2_stone, board_history,go_board_arr)
+  
+    if(len(valid_moves) != 0):
+        random_coord = random.choice(valid_moves)
+        cell_y = random_coord[1]
+        cell_x = random_coord[0]
+        print(f"{cell_x} - {cell_y}")
         
-        if (cell_x,cell_y) in ko_cells:
-            print("Not allowed by Ko")
-        else:
-            if((cell_x,cell_y) in constraint_cells):
-                # boardCellStack.pop()
-                print("Not allowed by suicide")
+        if(board_array[cell_y][cell_x].stone == None):
+            ko_cells = findPlayerKo(CELL_NUMBER, player1_stone if round_number%2==0 else player2_stone, board_history,go_board_arr)
+            
+            if (cell_x,cell_y) in ko_cells:
+                print("Not allowed by Ko")
             else:
-                # print("Valid move")
-                putStoneToCoordinate(CELL_NUMBER, cell_x, cell_y, board_array, stone)
-                updateOponentLiberty(CELL_NUMBER, stone, board_array)
-                removeZeroLibertyStones(board_array)
-                updateAllyLiberty(CELL_NUMBER, stone, board_array)
-                
-                board_history.append(copy.deepcopy(board_array))
-                len(board_history)>3 and board_history.pop(0)
+                if((cell_x,cell_y) in (constraint_cells_p2 ) or (cell_x,cell_y) in constraint_cells_p1):
+                    # boardCellStack.pop()
+                    print("Not allowed by suicide")
+                else:
+                    # print("Valid move")
+                    putStoneToCoordinate(CELL_NUMBER, cell_x, cell_y, board_array, stone)
+                    updateOponentLiberty(CELL_NUMBER, stone, board_array)
+                    removeZeroLibertyStones(board_array)
+                    updateAllyLiberty(CELL_NUMBER, stone, board_array)
+                    
+                    board_history.append(copy.deepcopy(board_array))
+                    len(board_history)>3 and board_history.pop(0)
+    else:
+        resetBoard(board_array)
 
-    
-                
 
 
 def removeZeroLibertyStones(board_array):
@@ -242,6 +234,10 @@ boardCellStack = []
 boardArrayStack = []
 
 while running:
+
+    if p1_pass and p2_pass:
+        running = False
+        print("game over")
 
     time.sleep(0.0001)
     placeStoneAtRandom(CELL_NUMBER, round_number, boardArrayStack, go_board_arr)
