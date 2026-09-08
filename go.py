@@ -68,10 +68,10 @@ def updateKoOverlay(board_arr):
 
 
 def findOneLibertyInNeighbor(n, x, y, board_array):
+    one_liberty_stone = []
+    offset = [(1,0),(0,1),(-1,0),(0,-1)]
+    current_coordinate = (x,y)
     if(board_array[y][x].constraint == True):
-        offset = [(1,0),(0,1),(-1,0),(0,-1)]
-        current_coordinate = (x,y)
-        one_liberty_stone = []
         for o in offset:
             x,y = tuple(sum(x) for x in zip(current_coordinate, o))
             if (x<0 or x>=n or y<0 or y>=n) == True:
@@ -90,16 +90,17 @@ def findPlayerConstraints(n, player_stone, board_array):
             square = board_array[y][x]
             if square.stone == None:
                 putStoneToCoordinate(n, x, y, board_array, player_stone)
-                updateOponentLiberty(CELL_NUMBER, player_stone, board_array)
+                # updateOponentLiberty(CELL_NUMBER, player_stone, board_array)
                 # removeZeroLibertyStones(go_board_arr)
                 if (getLiberty(n, player_stone, board_array) == 0):
                     board_array[y][x].constraint = True
                     constraint_array.append((player_stone.cell_coordinate[0],player_stone.cell_coordinate[1]))
-                updateAllyLiberty(CELL_NUMBER, player_stone, board_array)
+                # updateAllyLiberty(CELL_NUMBER, player_stone, board_array)
                 one_liberty_stone_list = findOneLibertyInNeighbor(n, player_stone.cell_coordinate[0], player_stone.cell_coordinate[1], board_array)
-                if len(one_liberty_stone_list) != 0:
-                    board_array[y][x].constraint = False
-                    constraint_array.pop()
+                for s in one_liberty_stone_list:
+                    if s.player != player_stone.player:
+                        board_array[y][x].constraint = False
+                        constraint_array.pop()
                 board_array[y][x].stone = None
     return constraint_array
 
