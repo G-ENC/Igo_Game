@@ -98,7 +98,7 @@ def findPlayerConstraints(n, player_stone, board_array):
                 # updateAllyLiberty(CELL_NUMBER, player_stone, board_array)
                 one_liberty_stone_list = findOneLibertyInNeighbor(n, player_stone.cell_coordinate[0], player_stone.cell_coordinate[1], board_array)
                 for s in one_liberty_stone_list:
-                    if s.player != player_stone.player:
+                    if s.player != player_stone.player and len(constraint_array) != 0:
                         board_array[y][x].constraint = False
                         constraint_array.pop()
                 board_array[y][x].stone = None
@@ -243,10 +243,10 @@ boardArrayStack = []
 
 while running:
 
-    # time.sleep(0.0001)
-    # placeStoneAtRandom(CELL_NUMBER, round_number, boardArrayStack, go_board_arr)
-    # round_number += 1
-    # update = False
+    time.sleep(0.0001)
+    placeStoneAtRandom(CELL_NUMBER, round_number, boardArrayStack, go_board_arr)
+    round_number += 1
+    update = False
 
     constraint_cells = findPlayerConstraints(CELL_NUMBER, player1_stone if round_number%2==0 else player2_stone, go_board_arr)
     ko_cells = findPlayerKo(CELL_NUMBER, player1_stone if round_number%2==0 else player2_stone, boardArrayStack,go_board_arr)
